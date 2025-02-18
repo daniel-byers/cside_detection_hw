@@ -25,11 +25,29 @@ impl InjectionDetection {
             self.severity += 10;
         }
     }
+
+    fn scan_for_url(&mut self, input_script: String) {
+        let pattern = r"sspapi.zenyou.71360.com/js";
+        let re = match Regex::new(pattern) {
+            Ok(regex) => regex,
+            Err(e) => {
+                eprintln!("Invalid regex pattern: {}", e);
+                return;
+            }
+        };
+
+        if re.is_match(&input_script) {
+            self.severity += 50;
+        }
+    }
 }
 
 impl Scanner for InjectionDetection {
     fn scan_for_ioc(&mut self, input_script: String) -> bool {
-        self.scan_for_array_access(input_script);
-        return true;
+        if !self.enabled { return false };
+
+        self.scan_for_array_access(input_script.clone());
+        self.scan_for_url(input_script.clone());
+        return self.severity > 0;
     }
 }
