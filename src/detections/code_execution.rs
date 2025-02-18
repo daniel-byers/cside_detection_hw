@@ -1,26 +1,22 @@
 use regex::Regex;
 
-pub trait Scanner {
-    fn scan_for_ioc(&mut self, input_script: String) -> bool;
-}
-
-pub struct InjectionDetection {
+pub struct CodeExecution {
     severity: u64,
     enabled: bool
 }
 
-impl Default for InjectionDetection {
+impl Default for CodeExecution {
     fn default() -> Self {
-        InjectionDetection {
+        CodeExecution {
             severity: 0,
             enabled: true
         }
     }
 }
 
-impl InjectionDetection {
+impl CodeExecution {
     pub fn new(enabled: bool) -> Self {
-        InjectionDetection {
+        CodeExecution {
             severity: 0,
             enabled: enabled
         }
@@ -91,7 +87,7 @@ impl InjectionDetection {
     }
 }
 
-impl Scanner for InjectionDetection {
+impl super::Scanner for CodeExecution {
     fn scan_for_ioc(&mut self, input_script: String) -> bool {
         if !self.enabled { return false };
 

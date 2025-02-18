@@ -1,5 +1,6 @@
-mod injection_detection;
-use crate::injection_detection::Scanner;
+mod detections;
+
+use detections::Scanner;
 use std::env;
 use std::fs;
 
@@ -16,7 +17,11 @@ fn main() {
         std::process::exit(1);
     });
 
-    let mut id = injection_detection::InjectionDetection::default();
-    id.scan_for_ioc(contents);
-    println!("{}", id.get_severity());
+    println!("Scanning {}", filename);
+    let mut id = detections::code_execution::CodeExecution::default();
+    id.scan_for_ioc(contents.clone());
+    println!("Injection severity: {}", id.get_severity());
+    let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
+    oisd.scan_for_ioc(contents.clone());
+    println!("Info Stealer severity: {}", oisd.get_severity());
 }
