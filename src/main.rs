@@ -1,3 +1,5 @@
+mod injection_detection;
+use crate::injection_detection::Scanner;
 use std::env;
 use std::fs;
 
@@ -13,4 +15,8 @@ fn main() {
         eprintln!("Error reading file {}: {}", filename, e);
         std::process::exit(1);
     });
+
+    let mut id = injection_detection::InjectionDetection::default();
+    id.scan_for_ioc(contents);
+    println!("{}", id.get_severity());
 }
