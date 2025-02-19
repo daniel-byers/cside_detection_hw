@@ -1,6 +1,5 @@
-mod detections;
-
-use detections::Scanner;
+use cside_detection_hw::detections;
+use cside_detection_hw::detections::Scanner;
 use std::env;
 use std::fs;
 
