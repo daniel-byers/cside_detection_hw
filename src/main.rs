@@ -24,4 +24,7 @@ fn main() {
     let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
     oisd.scan_for_ioc(contents.clone());
     println!("Info Stealer severity: {}", oisd.get_severity());
+    let mut k = detections::keylogger::Keylogger::default();
+    k.scan_for_ioc(contents.clone());
+    println!("Keylogger severity: {}", k.get_severity());
 }
