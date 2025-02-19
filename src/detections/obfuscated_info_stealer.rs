@@ -91,6 +91,20 @@ impl ObfuscatedInfoStealer {
         }
     }
 
+    fn scan_for_base64_functions(&mut self, input_script: String) {
+        let pattern = r"btoa\(|atob\(";
+        let re = match Regex::new(pattern) {
+            Ok(regex) => regex,
+            Err(e) => {
+                eprintln!("Invalid regex pattern: {}", e);
+                return;
+            }
+        };
+
+        if re.is_match(&input_script) {
+            self.severity += 10;
+        }
+    }
 }
 
 impl super::Scanner for ObfuscatedInfoStealer {
@@ -101,6 +115,7 @@ impl super::Scanner for ObfuscatedInfoStealer {
         self.scan_for_url(input_script.clone());
         self.scan_for_base64_encoded_array(input_script.clone());
         self.scan_for_customer_data_usage(input_script.clone());
+        self.scan_for_base64_functions(input_script.clone());
         return self.severity > 0;
     }
 }
