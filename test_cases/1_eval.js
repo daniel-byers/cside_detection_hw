@@ -62,7 +62,7 @@ if (isie) {
 } else {
   /*
    * Sending and receiving data to an external site is a common JavaScript
-   * function, so it's not an IoC in and of itself. However, this can
+   * function, so it's not an IoC in and of itself. However, this
    * functionality is also common in malware and can be used in support of
    * other IoCs.
    */
