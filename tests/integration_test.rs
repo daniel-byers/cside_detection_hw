@@ -1,8 +1,10 @@
-use cside_detection_hw::detections;
-use cside_detection_hw::detections::Scanner;
 use std::fs;
 use std::env;
 use std::path::PathBuf;
+use cside_detection_hw::detections::code_execution::CODE_EXECUTION_SCANNER;
+use cside_detection_hw::detections::obfuscated_info_stealer::OBFUSCATED_INFO_STEALER_SCANNER;
+use cside_detection_hw::detections::keylogger::KEYLOGGER_SCANNER;
+use cside_detection_hw::detections::Severity;
 
 #[test]
 fn it_scans_eval_script() {
@@ -13,17 +15,20 @@ fn it_scans_eval_script() {
         std::process::exit(1);
     });
 
-    let mut id = detections::code_execution::CodeExecution::default();
-    id.scan_for_ioc(contents.clone());
-    assert_eq!(id.get_severity(), 100);
+    let result = CODE_EXECUTION_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 100);
+    assert_eq!(result.severity, Severity::Critical);
+    assert_eq!(result.items.len(), 4);
 
-    let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
-    oisd.scan_for_ioc(contents.clone());
-    assert_eq!(oisd.get_severity(), 0);
+    let result = OBFUSCATED_INFO_STEALER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 
-    let mut k = detections::keylogger::Keylogger::default();
-    k.scan_for_ioc(contents.clone());
-    assert_eq!(k.get_severity(), 0);
+    let result = KEYLOGGER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 5);
+    assert_eq!(result.severity, Severity::Info);
+    assert_eq!(result.items.len(), 1);
 }
 
 #[test]
@@ -35,17 +40,20 @@ fn it_scans_obfuscated_info_stealer_script() {
         std::process::exit(1);
     });
 
-    let mut id = detections::code_execution::CodeExecution::default();
-    id.scan_for_ioc(contents.clone());
-    assert_eq!(id.get_severity(), 0);
+    let result = CODE_EXECUTION_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 
-    let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
-    oisd.scan_for_ioc(contents.clone());
-    assert_eq!(oisd.get_severity(), 100);
+    let result = OBFUSCATED_INFO_STEALER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 100);
+    assert_eq!(result.severity, Severity::Critical);
+    assert_eq!(result.items.len(), 5);
 
-    let mut k = detections::keylogger::Keylogger::default();
-    k.scan_for_ioc(contents.clone());
-    assert_eq!(k.get_severity(), 0);
+    let result = KEYLOGGER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 }
 #[test]
 
@@ -57,17 +65,20 @@ fn it_scans_clean_script() {
         std::process::exit(1);
     });
 
-    let mut id = detections::code_execution::CodeExecution::default();
-    id.scan_for_ioc(contents.clone());
-    assert_eq!(id.get_severity(), 0);
+    let result = CODE_EXECUTION_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 
-    let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
-    oisd.scan_for_ioc(contents.clone());
-    assert_eq!(oisd.get_severity(), 0);
+    let result = OBFUSCATED_INFO_STEALER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 
-    let mut k = detections::keylogger::Keylogger::default();
-    k.scan_for_ioc(contents.clone());
-    assert_eq!(k.get_severity(), 0);
+    let result = KEYLOGGER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 }
 
 #[test]
@@ -79,15 +90,18 @@ fn it_scans_keylogger_script() {
         std::process::exit(1);
     });
 
-    let mut id = detections::code_execution::CodeExecution::default();
-    id.scan_for_ioc(contents.clone());
-    assert_eq!(id.get_severity(), 0);
+    let result = CODE_EXECUTION_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 5);
+    assert_eq!(result.severity, Severity::Info);
+    assert_eq!(result.items.len(), 1);
 
-    let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
-    oisd.scan_for_ioc(contents.clone());
-    assert_eq!(oisd.get_severity(), 0);
+    let result = OBFUSCATED_INFO_STEALER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 0);
+    assert_eq!(result.severity, Severity::Clean);
+    assert_eq!(result.items.len(), 0);
 
-    let mut k = detections::keylogger::Keylogger::default();
-    k.scan_for_ioc(contents.clone());
-    assert_eq!(k.get_severity(), 100);
+    let result = KEYLOGGER_SCANNER.scan_for_ioc(contents.clone());
+    assert_eq!(result.score, 100);
+    assert_eq!(result.severity, Severity::Critical);
+    assert_eq!(result.items.len(), 3);
 }

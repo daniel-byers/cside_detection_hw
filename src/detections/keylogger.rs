@@ -1,84 +1,39 @@
 use regex::Regex;
+use std::sync::LazyLock;
+use crate::detections::common::scan_for_xhttp_usage;
+use super::ScanResultItem;
+use super::Scanner;
 
-pub struct Keylogger {
-    severity: u64,
-    enabled: bool
-}
-
-impl Default for Keylogger {
-    fn default() -> Self {
-        Keylogger {
-            severity: 0,
-            enabled: true
-        }
+fn scan_for_url(input_script: String) -> ScanResultItem {
+    let pattern = r"h..ps?://something\.refreshment\.ltd";
+    let re = Regex::new(pattern).unwrap();
+    let score = match re.is_match(&input_script) { true => 50, false => 0 };
+    ScanResultItem {
+        name: "Check for known bad URL".to_string(),
+        detection_guidance: "The script contains a hard-coded URL with a history of malicious \
+                             activity".to_string(),
+        score: score
     }
 }
 
-impl Keylogger {
-    pub fn new(enabled: bool) -> Self {
-        Keylogger {
-            severity: 0,
-            enabled: enabled
-        }
-    }
-
-    pub fn get_severity(&self) -> u64 {
-        return std::cmp::min(self.severity, 100);
-    }
-
-    fn scan_for_url(&mut self, input_script: String) {
-        let pattern = r"h..ps?://something\.refreshment\.ltd";
-        let re = match Regex::new(pattern) {
-            Ok(regex) => regex,
-            Err(e) => {
-                eprintln!("Invalid regex pattern: {}", e);
-                return;
-            }
-        };
-
-        if re.is_match(&input_script) {
-            self.severity += 50;
-        }
-    }
-
-    fn scan_for_xhttp_usage(&mut self, input_script: String) {
-        let pattern = r"new\swXMLHttpRequest\(\)";
-        let re = match Regex::new(pattern) {
-            Ok(regex) => regex,
-            Err(e) => {
-                eprintln!("Invalid regex pattern: {}", e);
-                return;
-            }
-        };
-
-        if re.is_match(&input_script) {
-            self.severity += 5;
-        }
-    }
-
-    fn scan_for_keydown_event_listner(&mut self, input_script: String) {
-        let pattern = r#"window\.addEventListener\(['"]keydown"#;
-        let re = match Regex::new(pattern) {
-            Ok(regex) => regex,
-            Err(e) => {
-                eprintln!("Invalid regex pattern: {}", e);
-                return;
-            }
-        };
-
-        if re.is_match(&input_script) {
-            self.severity += 70;
-        }
+fn scan_for_keydown_event_listner(input_script: String) -> ScanResultItem {
+    let pattern = r#"window\.addEventListener\(['"]keydown"#;
+    let re = Regex::new(pattern).unwrap();
+    let score = match re.is_match(&input_script) { true => 70, false => 0 };
+    ScanResultItem {
+        name: "Check for known bad URL".to_string(),
+        detection_guidance: "The script contains logic that maps an event listener to the \
+                             'keydown' event. It is worth investigating this activity to determine \
+                             what the handler is using the keystrokes for, as it could indicate \
+                             that sensitive information is being recorded.".to_string(),
+        score: score
     }
 }
 
-impl super::Scanner for Keylogger {
-    fn scan_for_ioc(&mut self, input_script: String) -> bool {
-        if !self.enabled { return false };
-
-        self.scan_for_url(input_script.clone());
-        self.scan_for_xhttp_usage(input_script.clone());
-        self.scan_for_keydown_event_listner(input_script.clone());
-        return self.severity > 0;
-    }
-}
+pub static KEYLOGGER_SCANNER: LazyLock<Scanner> = LazyLock::new(|| {
+    let mut scanner = Scanner::new("Keylogger".to_string());
+    scanner.add_scan_function(scan_for_url);
+    scanner.add_scan_function(scan_for_xhttp_usage);
+    scanner.add_scan_function(scan_for_keydown_event_listner);
+    scanner
+});

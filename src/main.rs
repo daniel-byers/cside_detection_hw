@@ -1,5 +1,6 @@
 use cside_detection_hw::detections;
-use cside_detection_hw::detections::Scanner;
+use detections::SCANNERS;
+use detections::Severity;
 use std::env;
 use std::fs;
 
@@ -16,14 +17,19 @@ fn main() {
         std::process::exit(1);
     });
 
-    println!("Scanning {}", filename);
-    let mut id = detections::code_execution::CodeExecution::default();
-    id.scan_for_ioc(contents.clone());
-    println!("Injection severity: {}", id.get_severity());
-    let mut oisd = detections::obfuscated_info_stealer::ObfuscatedInfoStealer::default();
-    oisd.scan_for_ioc(contents.clone());
-    println!("Info Stealer severity: {}", oisd.get_severity());
-    let mut k = detections::keylogger::Keylogger::default();
-    k.scan_for_ioc(contents.clone());
-    println!("Keylogger severity: {}", k.get_severity());
+    for (_i, scanner) in SCANNERS.iter().enumerate() {
+        let result = scanner.scan_for_ioc(contents.clone());
+        println!("{}: {}\nThe following scans detected interesting artifacts:",
+                 scanner.name,
+                 result.score);
+        if result.severity != Severity::Clean {
+            for (i, item) in result.items.iter().enumerate() {
+                println!("[{}] {} (severity score: {})\n  {}",
+                         i,
+                         item.name,
+                         item.score,
+                         item.detection_guidance);
+            }
+        }
+    }
 }
